@@ -1,18 +1,25 @@
+let employeePayrollList;
 window.addEventListener('DOMContentLoaded', (event) => {
-    createInnerHTML();
-  });
-  
-  const createInnerHTML = () => {
-    const headerHtml = `
-      <th></th>
-      <th>Name</th>
-      <th>Gender</th>
-      <th>Department</th>
-      <th>Salary</th>
-      <th>Start Date</th>
-      <th>Actions</th>`;
-    let innerHtml = `${headerHtml}`;
-    let employeePayrollList = createEmployeePayrollJSON();
+  employeePayrollList = getEmployeePayrollListFromStorage();
+  document.querySelector(".emp-count").textContent = employeePayrollList.length;
+  createInnerHTML();
+});
+
+const getEmployeePayrollListFromStorage = () => {
+  return localStorage.getItem('EmployeePayrollList') ? JSON.parse(localStorage.getItem('EmployeePayrollList')) : [];
+}
+
+const createInnerHTML = () => {
+  const headerHtml = `
+    <th></th>
+    <th>Name</th>
+    <th>Gender</th>
+    <th>Department</th>
+    <th>Salary</th>
+    <th>Start Date</th>
+    <th>Actions</th>`;
+  let innerHtml = `${headerHtml}`;
+  if (employeePayrollList.length != 0) {
     for (const employeePayrollData of employeePayrollList) {
       innerHtml = `${innerHtml}
       <tr>
@@ -30,43 +37,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
         </td>
       </tr>`;
     }
-    document.querySelector('#table-display').innerHTML = innerHtml;
-  };
-  
-  const createEmployeePayrollJSON = () => {
-    let empPayrollListLocal = [
-      {
-        "_name": "Vaibhavi Sharma",
-        "_gender": "Female",
-        "_department": [
-          "Finance"
-        ],
-        "_salary": "400000",
-        "_startDate": "1 Jan 2020",
-        "_notes": "",
-        "_id": 1604589551457,
-        "_profilePic": "../assets/profile-images/Ellipse 1.png"
-      },
-      {
-        "_name": "Mohit Kumar",
-        "_gender": "Male",
-        "_department": [
-          "Sales", "Marketing"
-        ],
-        "_salary": "400000",
-        "_startDate": "1 Feb 2020",
-        "_notes": "",
-        "_id": 1604589699566,
-        "_profilePic": "../assets/profile-images/Ellipse -3.png"
-      }
-    ]
-    return empPayrollListLocal;
   }
-  
-  const getDeptHtml = (departmentList) => {
-    let departmentHtml = '';
-    for (const department of departmentList) {
-      departmentHtml = `${departmentHtml} <div class="dept-label">${department}</div>` 
-    }
-    return departmentHtml;
+  document.querySelector('#table-display').innerHTML = innerHtml;
+};
+
+const getDeptHtml = (departmentList) => {
+  let departmentHtml = '';
+  for (const department of departmentList) {
+    departmentHtml = `${departmentHtml} <div class="dept-label">${department}</div>` 
   }
+  return departmentHtml;
+}
