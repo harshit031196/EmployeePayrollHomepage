@@ -65,15 +65,18 @@ class EmployeePayroll {
     return this._startDate;
   }
   set startDate(date) {
-    if (date != undefined) {
-      if (date <= new Date()) {
-        const options = { year: "numeric", month: "short", day: "numeric" };
-        const employeeDate = date === undefined ? "undefined" :
-          date.toLocaleDateString("en-GB", options);
-        this._startDate = employeeDate;
+    let now = new Date();
+    if (date <= now) {
+      const options = { year: "numeric", month: "short", day: "numeric" };
+      const employeeDate = date === undefined ? "undefined" :
+        date.toLocaleDateString("en-GB", options);
+      var difference = Math.abs(now.getTime() - date.getTime());
+      if (difference / (1000 * 60 * 60 * 24) > 30) {
+        throw 'Start Date is beyond 30 Days!';
       }
-      else throw "Start Date Cannot Be Of The Future!";
+      this._startDate = employeeDate;
     }
+    else throw "Start Date Cannot Be A Future Date!";
   }
 
   toString() {

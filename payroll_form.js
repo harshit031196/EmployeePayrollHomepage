@@ -3,107 +3,150 @@ let employeePayrollObject = {};
 
 window.addEventListener('DOMContentLoaded', (event) => {
   const name = document.querySelector('#name');
-  const textError = document.querySelector('.text-error');
   name.addEventListener('input', function () {
     if (name.value.length == 0) {
-      textError.textContent = "";
+      setTextValue('.text-error', "");
       return;
     }
     try {
       (new EmployeePayroll()).name = name.value;
-      textError.textContent = "";
+      setTextValue('.text-error', "");
     } catch (error) {
-      textError.textContent = error;
+      setTextValue('.text-error', error);
     }
   });
 
   const salary = document.querySelector('#salary');
   const output = document.querySelector('.salary-output');
   output.textContent = salary.value;
-  salary.addEventListener('input', function () { output.textContent = salary.value; });
+  salary.addEventListener('input', function () { setTextValue('.salary-output', salary.value); });
 
-  const day = document.querySelector('#day');
-  const year = document.querySelector('#year');
-  const month = document.querySelector('#month');
-  const dateError = document.querySelector('.date-error');
-  [day, month, year].forEach(item => item.addEventListener('input', function () {
+  const date = document.querySelector('#date');
+  date.addEventListener('input', function () {
+    let day = document.querySelector('#day');
+    let year = document.querySelector('#year');
+    let month = document.querySelector('#month');
     if (month.value == 2) {
       if (isLeapYear(year.value)) {
         if (day.value > 29) {
-          dateError.textContent = "Invalid Date!";
-        } else dateError.textContent = "";
+          setTextValue('.date-error', "Invalid Date!");
+        } else setTextValue('.date-error', "");
       } else {
         if (day.value > 28) {
-          dateError.textContent = "Invalid Date!";
-        } else dateError.textContent = "";
+          setTextValue('.date-error', "Invalid Date!");
+        } else setTextValue('.date-error', "");
       }
     }
-    if (month.value == 4 || month.value == 6 || month.value == 9 || month.value == 11) {
+    else if (month.value == 4 || month.value == 6 || month.value == 9 || month.value == 11) {
       if (day.value > 30) {
-        dateError.textContent = "Invalid Date!";
-      } else dateError.textContent = "";
+        setTextValue('.date-error', "Invalid Date!");
+      } else setTextValue('.date-error', "");
     }
-  }));
+    else setTextValue('.date-error', "");
+
+    if (document.querySelector('.date-error').textContent == "") {
+      const startDate = new Date(getInputValueById('#year'),
+                                 parseInt(getInputValueById('#month')) - 1,
+                                 getInputValueById('#day'));
+      try {
+        (new EmployeePayroll()).startDate = startDate;
+        setTextValue('.date-error', "");
+      } catch (error) {
+        setTextValue('.date-error', error);
+      }
+    }
+  });
 
   checkForUpdate();
 });
 
-const save = () => {
+const save = (event) => {
   checked = $("input[type=checkbox]:checked").length;
   if (!checked) {
     alert("You must select at least one department.");
     return;
   }
-
+  event.preventDefault();
+  event.stopPropagation();
   try {
-    let employeePayrollData = createEmployeePayroll();
-    createAndupdateStorage(employeePayrollData);
+    setEmployeePayrollObject();
+    createAndupdateStorage();
     resetForm();
+    window.location.replace(site_properties.home_page);
   } catch (error) {
     alert(error);
   }
 }
 
-const createEmployeePayroll = () => {
-  let employeePayrollList = JSON.parse(localStorage.getItem("EmployeePayrollList"));
-  let recentId = 0;
-  if (employeePayrollList) {
-    for (const empData of employeePayrollList) {
-      if (recentId < empData._id)
-      recentId = empData._id;
-    }
-  }
-
-  let employeePayrollData = new EmployeePayroll();
+const setEmployeePayrollObject = () => {
   try {
-    employeePayrollData.id = recentId + 1;
-    employeePayrollData.name = getInputValueById('#name');
-    employeePayrollData.profilePic = getSelectedValues('[name=profile]').pop();
-    employeePayrollData.gender = getSelectedValues('[name=gender]').pop();
-    employeePayrollData.department = getSelectedValues('[name=department]');
-    employeePayrollData.salary = getInputValueById('#salary');
-    employeePayrollData.note = getInputValueById('#notes');
+    employeePayrollObject._name = getInputValueById('#name');
+    employeePayrollObject._profilePic = getSelectedValues('[name=profile]').pop();
+    employeePayrollObject._gender = getSelectedValues('[name=gender]').pop();
+    employeePayrollObject._department = getSelectedValues('[name=department]');
+    employeePayrollObject._salary = getInputValueById('#salary');
+    employeePayrollObject._note = getInputValueById('#notes');
     if (document.querySelector('.date-error').textContent == "") {
-      employeePayrollData.startDate = new Date(getInputValueById('#year'),
+      employeePayrollObject._startDate = new Date(getInputValueById('#year'),
         parseInt(getInputValueById('#month')) - 1,
         getInputValueById('#day'));
     } else throw "Cannot Enter Impossible Date!";
-    alert(employeePayrollData);
-    return employeePayrollData;
   } catch (error) {
     throw error;
   }
 }
 
-function createAndupdateStorage(employeePayrollData) {
+const createAndupdateStorage = () => {
   let employeePayrollList = JSON.parse(localStorage.getItem("EmployeePayrollList"));
-  if (employeePayrollList == undefined) {
-    employeePayrollList = [employeePayrollData];
+  if (!employeePayrollList) {
+    employeePayrollList = [createEmployeePayrollData()];
   } else {
-    employeePayrollList.push(employeePayrollData);
+    let employeePayrollData = employeePayrollList.find(empData => empData._id == employeePayrollObject._id);
+    if (!employeePayrollData) {
+      employeePayrollList.push(createEmployeePayrollData());
+    } else {
+      const index = employeePayrollList.map(empData => empData._id)
+                                       .indexOf(employeePayrollData._id);
+      employeePayrollList.splice(index, 1, createEmployeePayrollData(employeePayrollData._id));
+    }
   }
-  alert(employeePayrollList.toString());
   localStorage.setItem("EmployeePayrollList", JSON.stringify(employeePayrollList));
+}
+
+const createEmployeePayrollData = (id) => {
+  let employeePayrollData = new EmployeePayroll();
+  if (!id) employeePayrollData.id = createNewEmployeeId();
+  else employeePayrollData.id = id;
+  setEmployeePayrollData(employeePayrollData);
+  return employeePayrollData;
+}
+
+const setEmployeePayrollData = (employeePayrollData) => {
+  try {
+    employeePayrollData.name = employeePayrollObject._name;
+  } catch (error) {
+    setTextValue('.text-error', error);
+    throw error;
+  }
+  employeePayrollData.profilePic = employeePayrollObject._profilePic;
+  employeePayrollData.gender = employeePayrollObject._gender;
+  employeePayrollData.department = employeePayrollObject._department;
+  employeePayrollData.salary = employeePayrollObject._salary;
+  employeePayrollData.note = employeePayrollObject._note;
+  try {
+    employeePayrollData.startDate = employeePayrollObject._startDate;
+  } catch (error) {
+    setTextValue('.date-error', error);
+    throw error;
+  }
+  alert(employeePayrollData.toString());
+}
+
+const createNewEmployeeId = () => {
+  let employeeID = localStorage.getItem("EmployeeID");
+  employeeID = !employeeID ? 1 : (parseInt(employeeID) + 1).toString();
+  localStorage.setItem("EmployeeID", employeeID);
+  return employeeID; 
 }
 
 const setForm = () => {
@@ -113,7 +156,7 @@ const setForm = () => {
   setSelectedValues('[name=department]', employeePayrollObject._department);
   setValue('#salary', employeePayrollObject._salary);
   setTextValue('.salary-output', employeePayrollObject._salary);
-  setValue('#notes', employeePayrollObject._notes);
+  setValue('#notes', employeePayrollObject._note);
   let date = stringifyDate(employeePayrollObject._startDate).split(" ");
   let month = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(date[1]);
   setValue('#day', date[0]);

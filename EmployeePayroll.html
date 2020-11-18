@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="form-content">
-      <form class="form" action="#" onreset="resetForm()" onsubmit="save();return false">
+      <form class="form" action="#" onreset="resetForm()" onsubmit="save(event);return false">
         <div class="form-head"> Employee Payroll Form</div>
         <div class="row-content">
           <label class="label text" for="name">Name</label>
@@ -88,7 +88,7 @@
         </div>
         <div class="row-content">
           <label class="label text" for="startdate">Start Date</label>
-          <div>
+          <div id="date" for="startdate">
             <select id="day" name="Day">
               <option value="1">1</option>
               <option value="2">2</option>
@@ -151,7 +151,7 @@
           <textarea id="notes" class="input" name="Notes" placeholder="" style="height:100px"></textarea>
         </div>
         <div class="buttonParent">
-          <a href="HomePage.html" class="resetButton button cancelButton">Cancel</a>
+          <a href="./HomePage.html" class="resetButton button cancelButton">Cancel</a>
           <div class="submit-reset">
             <button type="submit" class="button submitButton" id="submitButton">Submit</button>
             <button type="reset" class="resetButton button">Reset</button>
